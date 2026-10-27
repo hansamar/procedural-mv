@@ -1,0 +1,16 @@
+{
+  "name": "procedural-mv",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "serve": "node scripts/serve.mjs",
+    "check": "node scripts/check.mjs",
+    "shots": "node scripts/shots.mjs",
+    "export": "node scripts/export.mjs",
+    "verify:audio": "node scripts/verify_audio.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.64.0"
+  }
+}

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>程序化 MV</title>
+<style>
+/* Fonts: every @font-face here is loaded before the first frame (main.js). Bundled files and what
+   they cover: assets/fonts/README.md. Add a family here, then put it first in a stack in
+   src/scenes/style.js. */
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("assets/fonts/SpaceGrotesk-VariableFont_wght.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: block;
+}
+@font-face {
+  font-family: "Noto Sans KR";
+  src: url("assets/fonts/NotoSansKR-VariableFont_wght.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: block;
+}
+@font-face {
+  font-family: "Noto Sans SC";
+  src: url("assets/fonts/NotoSansSC-Regular.subset.woff2") format("woff2");
+  font-weight: 400;
+  font-display: block;
+}
+@font-face {
+  font-family: "Noto Sans SC";
+  src: url("assets/fonts/NotoSansSC-Black.subset.woff2") format("woff2");
+  font-weight: 900;
+  font-display: block;
+}
+@font-face {
+  font-family: "Noto Serif SC";
+  src: url("assets/fonts/NotoSerifSC-Bold.subset.woff2") format("woff2");
+  font-weight: 700;
+  font-display: block;
+}
+html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+#wrap { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+#stage { display: block; width: min(100vw, calc(100vh * 16 / 9)); height: auto; aspect-ratio: 16 / 9; }
+#ui {
+  position: fixed; left: 0; right: 0; bottom: 0; display: flex; gap: 12px; align-items: center;
+  padding: 10px 16px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
+  color: #cfd3da; font: 13px/1.2 "Space Grotesk", system-ui, sans-serif;
+}
+#ui button { background: #1a1d24; color: #e8ecf2; border: 1px solid #3a404c; padding: 6px 14px; cursor: pointer; }
+#ui input[type=range] { flex: 1; }
+#ui .muted { opacity: 0.6; }
+body.export #ui { display: none; }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="stage" width="1920" height="1080"></canvas></div>
+<div id="ui">
+  <button id="play" disabled>加载中</button>
+  <input id="scrub" type="range" min="0" max="1" step="0.001" value="0">
+  <span id="clock">0:00.000</span>
+  <span id="status" class="muted"></span>
+</div>
+<audio id="track" src="assets/audio/song.flac" preload="auto"></audio>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

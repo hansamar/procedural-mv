@@ -1,0 +1,13 @@
+node_modules/
+__pycache__/
+*.py[cod]
+.DS_Store
+Thumbs.db
+.env
+.env.*
+!.env.example
+assets/starter/analysis/work/
+assets/starter/exports/
+assets/starter/assets/audio/
+assets/starter/assets/material/
+assets/starter/data/
