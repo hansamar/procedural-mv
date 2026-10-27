@@ -1,77 +1,192 @@
 # Procedural MV
 
-一个用于制作程序化音乐视频的 Codex skill。根据原始音频和歌词，使用 Canvas2D / WebGL 编写画面，并完成音频分析、歌词对齐、预览、检查与视频导出。
+**English** | [简体中文](README.zh-CN.md)
 
-## 功能
+A skill for **Claude Code** that turns your audio and lyrics into a music video with visuals drawn in code. Claude analyzes the song, proposes visual directions, builds scenes, shows previews, and exports the approved result using the bundled Canvas2D / WebGL workflow.
 
-- 提取音频特征、节拍、乐段和逐词时间；支持有歌词的歌曲及纯音乐。
-- 提供平面动态排版、柔光、水墨纸张和音频可视化四种起始风格。
-- 支持横屏 16:9、竖屏 9:16、方形 1:1、4:5 和自定义偶数尺寸，最高可导出 4K。
-- 附带中文、韩文和拉丁文字体及对应的 SIL Open Font License 许可文件。
-- 提供帧截图、联系表、画面检查和音频一致性验证。
+Suitable for lyric videos, kinetic typography, audio visualizers, instrumental pieces, and music videos across genres and languages. Each song gets its own visual concept. Scenes follow audio time, so the same timestamp produces the same frame.
 
-完整工作流程见 [SKILL.md](SKILL.md)，音频处理依赖和故障排查见 [references/analysis.md](references/analysis.md)。
+## Features
 
-## 安装
+- **Song analysis:** audio features, beat grids, musical sections, vocal onsets, and lyric alignment; draft LRC generation when timed lyrics are missing.
+- **Four starting looks:** flat poster typography, soft light, paper and ink, and an audio visualizer. Scenes can be developed into other looks through code.
+- **Multiple formats:** 16:9, 9:16, 1:1, 4:5, and custom even dimensions, with export up to 4K.
+- **Multilingual type:** bundled Chinese, Korean, and Latin fonts, plus lyric layout helpers.
+- **Preview and review:** a local preview with sound, frame captures, contact sheets, and automated checks.
+- **Audio verification:** a lossless intermediate master checked against the source, followed by an AAC playback copy in the delivered MP4.
 
-将整个仓库克隆到 Codex 的 skills 目录，保持 `SKILL.md` 位于 `procedural-mv` 文件夹的根目录。
+The complete instructions live in [SKILL.md](SKILL.md). The repository includes the engine, starter project, analysis scripts, fonts, and reference material used by the skill.
 
-Windows PowerShell：
+## Install for Claude Code
+
+Choose a personal installation or a project installation. Keep the entire repository together: the supporting files are needed alongside `SKILL.md`.
+
+### Personal installation
+
+Available across your Claude Code projects.
+
+**macOS / Linux**
+
+```bash
+mkdir -p ~/.claude/skills
+git clone https://github.com/hansamar/procedural-mv.git ~/.claude/skills/procedural-mv
+```
+
+**Windows PowerShell**
 
 ```powershell
-git clone https://github.com/hansamar/procedural-mv.git "$HOME/.codex/skills/procedural-mv"
+New-Item -ItemType Directory -Force "$HOME/.claude/skills" | Out-Null
+git clone https://github.com/hansamar/procedural-mv.git "$HOME/.claude/skills/procedural-mv"
 ```
 
-macOS / Linux：
+### Project installation
+
+Run from your project root:
 
 ```bash
-git clone https://github.com/hansamar/procedural-mv.git ~/.codex/skills/procedural-mv
+git clone https://github.com/hansamar/procedural-mv.git .claude/skills/procedural-mv
 ```
 
-若使用自定义 `CODEX_HOME`，请改用该目录下的 `skills/procedural-mv`。目标目录已存在时，先检查已有内容，避免覆盖本地修改。
+The entry point should be `.claude/skills/procedural-mv/SKILL.md`. If installing from a ZIP, extract the complete repository to that folder without an extra nested directory.
 
-## 使用
+Start Claude Code in the project where you want to create the video, then invoke `/procedural-mv`. These paths and invocation follow the [official Claude Code skills documentation](https://code.claude.com/docs/en/skills).
 
-在 Codex 中提供音频文件、歌词或 LRC，以及需要的风格和画面比例，例如：
+## Start with a prompt
+
+Give Claude a local audio path, lyrics or an LRC file when available, your aspect ratio, and any visual direction. FLAC or WAV is recommended for audio verification. Quote paths containing spaces.
+
+**A vertical lyric video**
 
 ```text
-使用 $procedural-mv，把这首歌和歌词制作成 9:16 竖屏音乐视频。
-先给我看风格方案和预览帧，确认后导出 1080p。
+/procedural-mv
+Use ./input/song.wav and timed lyrics at ./input/song.lrc.
+Make a 9:16 lyric video with soft lighting and readable text.
+Show me 2–3 visual directions and preview frames first.
+Wait for my approval before exporting at 1080 × 1920.
 ```
 
-也可以用脚本创建独立项目。在本仓库根目录运行：
+**An instrumental visualizer**
+
+```text
+/procedural-mv
+Use ./input/instrumental.flac to make a 16:9 audio visualizer.
+Follow the musical sections and accents, with no lyrics.
+Show a contact sheet and a preview before the final export.
+```
+
+**A song without timed lyrics**
+
+```text
+/procedural-mv
+The audio is ./input/song.wav and the lyrics are in ./input/lyrics.txt.
+The song is in Korean. Draft timings and flag uncertain words for review.
+Propose a visual concept before building the video.
+```
+
+Claude handles project operations and scene code. You choose the visual direction, review uncertain lyrics, and approve the final render. With no LRC, speech recognition produces a draft that needs checking against the actual lyrics.
+
+## Requirements
+
+Use a local Claude Code environment that can run the tools below. Execution in Claude web chat or other hosted environments has not been verified for this repository.
+
+| Component | Purpose |
+| --- | --- |
+| Git | Clone and update the skill; downloading a ZIP is an alternative |
+| Node.js and npm | Project setup, preview, checks, and export |
+| Playwright and Chromium | Browser rendering; installed in the generated project |
+| Python 3.10+ | Audio analysis |
+| FFmpeg | Video encoding, audio muxing, and audio verification |
+| Python analysis packages | Selected for the input type and available lyrics |
+
+Audio and beat analysis use `numpy`, `scipy`, `librosa`, and `soundfile`. Vocal separation and alignment use `torch`, `torchaudio`, and `demucs`. `openai-whisper` is required to draft timed lyrics when no LRC is supplied. See [analysis setup](references/analysis.md) for the full dependency table, language helpers, and troubleshooting. Some models download weights on first use. A GPU can accelerate analysis; CPU execution is supported.
+
+FFmpeg is resolved through `FFMPEG_PATH`, the system PATH, or Python's `imageio-ffmpeg` package. The `PYTHON` environment variable selects the interpreter for that fallback.
+
+## Workflow
+
+1. **Intake:** provide audio, lyrics, format, and preferences; create a separate project.
+2. **Analysis:** extract timing and musical features, align lyrics, and review draft text.
+3. **Concept:** choose a visual direction and inspect representative frames.
+4. **Scenes:** build the visual progression, typography, and transitions around the music.
+5. **Review:** inspect frames, the contact sheet, and live preview; resolve failures and review warnings.
+6. **Export:** approve rendering, then receive the MP4 and applicable material credits.
+
+The default workflow waits for your concept choice and final export approval. See [SKILL.md](SKILL.md) for the full process and [visual guidance](references/visual-language.md) for review criteria.
+
+## Manual project commands
+
+Claude can run these commands for you. To run them yourself, start at the installed skill's root and replace the example paths. Choose an empty output directory outside the installed skill:
 
 ```bash
-node scripts/new_project.mjs ../my-mv --audio /path/to/song.wav --lrc /path/to/song.lrc --format 9:16
-cd ../my-mv
+node scripts/new_project.mjs /path/to/my-mv --audio /path/to/song.wav --lrc /path/to/song.lrc --format 9:16
+cd /path/to/my-mv
 npm install
 npx playwright install chromium
 ```
 
-需要 Node.js、npm、Python 3.10+，以及 FFmpeg。FFmpeg 可通过 PATH、`FFMPEG_PATH` 或 Python 的 `imageio-ffmpeg` 包提供。Python 分析依赖按歌曲类型安装，详见 [分析说明](references/analysis.md)。首次使用部分语音模型时需要下载模型文件。
+For Windows, use paths such as `C:/Videos/my-mv`. Omit `--lrc` if none is available. The scaffold copies the starter and inputs; scene design continues in the generated project.
 
-项目内的主要命令：
+Run the appropriate analysis command from that project:
 
 ```bash
-python analysis/run_all.py --lang zh
+# Sung audio: choose the song's language
+python analysis/run_all.py --lang en
+
+# Instrumental audio instead
+python analysis/run_all.py --instrumental
+```
+
+After scene design and timing are ready:
+
+```bash
+# Preview with sound: http://localhost:5173
 node scripts/serve.mjs
+
+# Generate a report, frames, and a contact sheet
 node scripts/check.mjs
-node scripts/export.mjs --out exports/my-mv.mp4 --width 1080
+
+# Export the approved video at the configured format size
+node scripts/export.mjs --out exports/my-mv.mp4
 ```
 
-分析完成后，还需要按 skill 流程完成概念设计、分镜、场景编写和预览确认。上述命令不是直接从音频生成成片的一键流程。无歌词和纯音乐的处理方式见分析说明。
+For 9:16, `--width 1080` exports 1080 × 1920 and `--width 2160` exports 2160 × 3840. For 16:9, `--width 3840` exports 3840 × 2160. See [export and verification](references/export-verify.md) for clips, frame rate, encoders, and lossless masters.
 
-## 文件结构
+## Outputs and audio integrity
 
-```text
-SKILL.md               skill 入口与工作流程
-scripts/new_project.mjs 独立项目创建脚本
-references/            分析、视觉、渲染、导出和素材说明
-assets/starter/        渲染引擎、分析脚本、场景模板和字体
+The generated project retains editable scene code, analysis data, and exports. Checks produce `exports/check/report.json`, frames, and `exports/check/sheet.jpg`. The export command writes the MP4 at the path passed to `--out`.
+
+For exports starting at zero with audio muxing enabled, the exporter compares the lossless ALAC intermediate with the source's decoded PCM using SHA-256. A successful proof reports `"audio_pcm_equal": true`. The default MP4 contains H.264 video and AAC 320k audio. AAC is lossy: the proof applies to the intermediate master. Use `--keep-master` to retain that master. Clips starting after zero skip this proof. See [verification details](references/export-verify.md).
+
+## Repository guide
+
+| Path | Contents |
+| --- | --- |
+| [SKILL.md](SKILL.md) | Instructions Claude follows |
+| [scripts/new_project.mjs](scripts/new_project.mjs) | Project scaffolder |
+| [assets/starter/](assets/starter/) | Scene engine, analysis, rendering scripts, and fonts |
+| [references/styles.md](references/styles.md) | Modes, looks, genres, and formats |
+| [references/engine.md](references/engine.md) | Scene APIs, layout, signals, and typography |
+| [references/analysis.md](references/analysis.md) | Dependencies, analysis commands, and troubleshooting |
+| [references/export-verify.md](references/export-verify.md) | Checks, exports, and audio proof |
+| [references/assets-credits.md](references/assets-credits.md) | Material sources, permissions, and credits |
+
+## Update and troubleshoot
+
+For a personal installation with no local changes:
+
+```bash
+git -C ~/.claude/skills/procedural-mv pull --ff-only
 ```
 
-## 音频与素材
+In PowerShell, use `git -C "$HOME/.claude/skills/procedural-mv" pull --ff-only`. For a project installation, substitute `.claude/skills/procedural-mv`. Check local edits before updating.
 
-导出流程会验证无损音频主文件的解码 PCM 一致性；用于交付的 MP4 使用 AAC 320k 音轨。输入歌曲和歌词由使用者提供。使用第三方素材时，按 [素材说明](references/assets-credits.md) 记录来源和许可，并取得所需授权。
+- **Skill unavailable:** verify the installation directory and `SKILL.md` location, then invoke `/procedural-mv` in Claude Code. Avoid duplicate installations at both scopes.
+- **Missing Python packages:** follow `run_all.py` diagnostics using the same interpreter. See [analysis troubleshooting](references/analysis.md).
+- **Incorrect or mistimed lyrics:** correct `data/song.lrc` and rerun analysis; review recognition drafts before exporting.
+- **FAIL or WARN results:** fix failures, inspect the named frames, and resolve or document warnings. See the [check report guide](references/export-verify.md).
 
-随附字体的许可位于 [字体目录](assets/starter/assets/fonts/)。本仓库未另外指定代码许可证。
+## Materials and licenses
+
+The skill uses code-drawn scenes and documented borrowed material. Its current instructions exclude AI-generated images and video. Artist photographs, cover art, and official footage require item-by-item user approval before export; that approval does not replace the rights holder's permission. Provide audio, lyrics, and materials you have permission to use, and record sources using the [material and credit guidance](references/assets-credits.md).
+
+Bundled fonts include SIL Open Font License texts in the [font directory](assets/starter/assets/fonts/). No separate code license has been specified for this repository.
