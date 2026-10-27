@@ -2,7 +2,9 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-A skill for **Claude Code** that turns your audio and lyrics into a music video with visuals drawn in code. Claude analyzes the song, proposes visual directions, builds scenes, shows previews, and exports the approved result using the bundled Canvas2D / WebGL workflow.
+A skill that turns your audio and lyrics into a music video with visuals drawn in code. Your agent analyzes the song, proposes visual directions, builds scenes, shows previews, and exports the approved result using the bundled Canvas2D / WebGL workflow.
+
+**Recommended model: Claude.** Choose an agent that can read the skill and its supporting files, edit project code, run local commands, and inspect preview images. The model choice and the agent application are separate: installation and invocation depend on your agent. The Claude Code instructions below are one installation example. Other agents require their own setup and have not been individually verified with this repository.
 
 Suitable for lyric videos, kinetic typography, audio visualizers, instrumental pieces, and music videos across genres and languages. Each song gets its own visual concept. Scenes follow audio time, so the same timestamp produces the same frame.
 
@@ -17,11 +19,21 @@ Suitable for lyric videos, kinetic typography, audio visualizers, instrumental p
 
 The complete instructions live in [SKILL.md](SKILL.md). The repository includes the engine, starter project, analysis scripts, fonts, and reference material used by the skill.
 
-## Install for Claude Code
+## Installation
 
-Choose a personal installation or a project installation. Keep the entire repository together: the supporting files are needed alongside `SKILL.md`.
+Clone the complete repository into your agent's skill directory, or a local folder that it can access. Keep the supporting files alongside `SKILL.md`.
 
-### Personal installation
+```bash
+git clone https://github.com/hansamar/procedural-mv.git procedural-mv
+```
+
+For an agent with skill discovery, follow its installation or import mechanism and point it at the `procedural-mv` folder. Otherwise, ask it to read `<skill-directory>/SKILL.md` and follow the referenced files. Installation alone does not provide the execution tools listed under Requirements. ZIP installation also works if you retain the complete folder structure.
+
+### Claude Code example
+
+Choose a personal installation or a project installation.
+
+#### Personal installation
 
 Available across your Claude Code projects.
 
@@ -39,7 +51,7 @@ New-Item -ItemType Directory -Force "$HOME/.claude/skills" | Out-Null
 git clone https://github.com/hansamar/procedural-mv.git "$HOME/.claude/skills/procedural-mv"
 ```
 
-### Project installation
+#### Project installation
 
 Run from your project root:
 
@@ -53,12 +65,12 @@ Start Claude Code in the project where you want to create the video, then invoke
 
 ## Start with a prompt
 
-Give Claude a local audio path, lyrics or an LRC file when available, your aspect ratio, and any visual direction. FLAC or WAV is recommended for audio verification. Quote paths containing spaces.
+Give your agent the skill location, a local audio path, lyrics or an LRC file when available, your aspect ratio, and any visual direction. Replace `<skill-directory>` with the actual path. If your agent has a skill invocation command, use that instead; for example, Claude Code uses `/procedural-mv`. FLAC or WAV is recommended for audio verification. Quote paths containing spaces.
 
 **A vertical lyric video**
 
 ```text
-/procedural-mv
+Read <skill-directory>/SKILL.md and use the procedural-mv skill.
 Use ./input/song.wav and timed lyrics at ./input/song.lrc.
 Make a 9:16 lyric video with soft lighting and readable text.
 Show me 2–3 visual directions and preview frames first.
@@ -68,7 +80,7 @@ Wait for my approval before exporting at 1080 × 1920.
 **An instrumental visualizer**
 
 ```text
-/procedural-mv
+Read <skill-directory>/SKILL.md and use the procedural-mv skill.
 Use ./input/instrumental.flac to make a 16:9 audio visualizer.
 Follow the musical sections and accents, with no lyrics.
 Show a contact sheet and a preview before the final export.
@@ -77,17 +89,17 @@ Show a contact sheet and a preview before the final export.
 **A song without timed lyrics**
 
 ```text
-/procedural-mv
+Read <skill-directory>/SKILL.md and use the procedural-mv skill.
 The audio is ./input/song.wav and the lyrics are in ./input/lyrics.txt.
 The song is in Korean. Draft timings and flag uncertain words for review.
 Propose a visual concept before building the video.
 ```
 
-Claude handles project operations and scene code. You choose the visual direction, review uncertain lyrics, and approve the final render. With no LRC, speech recognition produces a draft that needs checking against the actual lyrics.
+The agent handles project operations and scene code. You choose the visual direction, review uncertain lyrics, and approve the final render. With no LRC, speech recognition produces a draft that needs checking against the actual lyrics.
 
 ## Requirements
 
-Use a local Claude Code environment that can run the tools below. Execution in Claude web chat or other hosted environments has not been verified for this repository.
+Use an agent environment with access to the project filesystem, command execution, preview images, and the tools below. It needs to support the local browser used for rendering and preview. Hosted environments may impose additional execution or dependency restrictions; check those capabilities before starting.
 
 | Component | Purpose |
 | --- | --- |
@@ -115,7 +127,7 @@ The default workflow waits for your concept choice and final export approval. Se
 
 ## Manual project commands
 
-Claude can run these commands for you. To run them yourself, start at the installed skill's root and replace the example paths. Choose an empty output directory outside the installed skill:
+Your agent can run these commands for you. To run them yourself, start at the installed skill's root and replace the example paths. Choose an empty output directory outside the installed skill:
 
 ```bash
 node scripts/new_project.mjs /path/to/my-mv --audio /path/to/song.wav --lrc /path/to/song.lrc --format 9:16
@@ -161,7 +173,7 @@ For exports starting at zero with audio muxing enabled, the exporter compares th
 
 | Path | Contents |
 | --- | --- |
-| [SKILL.md](SKILL.md) | Instructions Claude follows |
+| [SKILL.md](SKILL.md) | Instructions the agent follows |
 | [scripts/new_project.mjs](scripts/new_project.mjs) | Project scaffolder |
 | [assets/starter/](assets/starter/) | Scene engine, analysis, rendering scripts, and fonts |
 | [references/styles.md](references/styles.md) | Modes, looks, genres, and formats |
@@ -172,15 +184,15 @@ For exports starting at zero with audio muxing enabled, the exporter compares th
 
 ## Update and troubleshoot
 
-For a personal installation with no local changes:
+For an installation with no local changes, replace the path with your skill repository:
 
 ```bash
-git -C ~/.claude/skills/procedural-mv pull --ff-only
+git -C /path/to/procedural-mv pull --ff-only
 ```
 
-In PowerShell, use `git -C "$HOME/.claude/skills/procedural-mv" pull --ff-only`. For a project installation, substitute `.claude/skills/procedural-mv`. Check local edits before updating.
+In PowerShell, a quoted path works too: `git -C "C:/path/to/procedural-mv" pull --ff-only`. For a Claude Code personal installation, use `~/.claude/skills/procedural-mv`; for its project installation, use `.claude/skills/procedural-mv`. Check local edits before updating.
 
-- **Skill unavailable:** verify the installation directory and `SKILL.md` location, then invoke `/procedural-mv` in Claude Code. Avoid duplicate installations at both scopes.
+- **Skill unavailable:** check your agent's discovery or import settings and the `SKILL.md` location. You can also explicitly ask it to read that file and its references. In Claude Code, try `/procedural-mv` and avoid duplicate installations at both scopes.
 - **Missing Python packages:** follow `run_all.py` diagnostics using the same interpreter. See [analysis troubleshooting](references/analysis.md).
 - **Incorrect or mistimed lyrics:** correct `data/song.lrc` and rerun analysis; review recognition drafts before exporting.
 - **FAIL or WARN results:** fix failures, inspect the named frames, and resolve or document warnings. See the [check report guide](references/export-verify.md).
